@@ -2,6 +2,7 @@
 //cd minus34/GitHub/prototypes/leaflet/vector-tiles/
 
 var map;
+var pbfLayer;
 var minZoom = 8;
 var maxZoom = 14;
 
@@ -21,7 +22,7 @@ function init(){
     var url = 'http://localhost:8080/geoserver/gwc/service/tms/1.0.0/loceng%3Alocality_bdys_display@EPSG%3A900913@pbf/{z}/{x}/{-y}.pbf';
 
     var vectorTileOptions = {
-        rendererFactory: L.canvas.tile,
+        rendererFactory: L.svg.tile,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://www.mapbox.com/about/maps/">MapBox</a>',
         vectorTileLayerStyles: {
 //            locality_bdys_display: {
@@ -33,18 +34,16 @@ function init(){
 //                stroke: true
 //            }
             locality_bdys_display: function(properties, zoom) {
-//                var fillcol = getColor(properties.address_count);
-
-                return style(properties.address_count);
+                return defaultStyle(properties.address_count);
             }
         },
         interactive: true,	// Make sure that this VectorGrid fires mouse/pointer events
-        getFeatureId: function(f) {
+        getFeatureId: function(f) { // Required because polygons span different tiles
             return f.properties.gid;
         }
     };
 
-    var pbfLayer = L.vectorGrid.protobuf(url, vectorTileOptions)
+    pbfLayer = L.vectorGrid.protobuf(url, vectorTileOptions)
         .on('click', function(e) {	// The .on method attaches an event handler
             L.popup()
                 .setContent(e.layer.properties.locality_name + ', ' + e.layer.properties.state + ' ' + e.layer.properties.postcode + '</br>' + e.layer.properties.address_count + ' addresses')
@@ -53,17 +52,19 @@ function init(){
 
             L.DomEvent.stop(e);
         })
-//         .on('mouseover', function(e) {	// The .on method attaches an event handler
-//         	highlightFeature(e);
-//
-//         	L.DomEvent.stop(e);
-//         })
-        .addTo(map);
+        .on('mouseover', function(e) {
+            highlightFeature(e.layer.properties);
+         	L.DomEvent.stop(e);
+        })
+        .on('mouseout', function(e) {
+            resetFeature(e.layer.properties);
+         	L.DomEvent.stop(e);
+        })        .addTo(map);
 
     map.setView([-33.85, 151.0], 12);
 }
 
-function style(renderVal) {
+function defaultStyle(renderVal) {
 
     return {
         weight: 1,
@@ -91,19 +92,30 @@ function style(renderVal) {
 
  }
 
-function highlightFeature(e) {
-    var layer = e.target;
+function highlightFeature(properties) {
+    var id = properties.gid;
+    var renderVal = properties.address_count;
 
-    layer.setStyle({
-        color: '#444',
+    highlightStyle = {
         weight: 2,
         opacity: 0.9,
-        fillOpacity: 0.7
-    });
+        color: '#444',
+        fillOpacity: 0.7,
+        fillColor: getColor(renderVal),
+        fill: true
+    };
 
-    if (!L.Browser.ie && !L.Browser.opera) {
-        layer.bringToFront();
-    }
+    pbfLayer.setFeatureStyle(id, highlightStyle);
+
+//    if (!L.Browser.ie && !L.Browser.opera) {
+//        layer.bringToFront();
+//    }
 
 //    info.update(layer.feature.properties);
+}
+
+function resetFeature(properties) {
+    var id = properties.gid;
+
+    pbfLayer.resetFeatureStyle(id);
 }
