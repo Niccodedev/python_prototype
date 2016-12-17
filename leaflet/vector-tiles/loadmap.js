@@ -1,12 +1,11 @@
+var map;
+
+var colours = ['#edf8fb','#ccece6','#99d8c9','#66c2a4','#41ae76','#238b45','#005824']; ``
+var themeGrades = [2, 4, 6, 8, 10, 12, 14]
 
 function init(){
-    var map = L.map('mapid')
+    map = L.map('mapid')
 
-    // var localities = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/loceng%3Alocality_bdys_display@EPSG%3A900913@png/{z}/{x}/{-y}.png', {
-    //     opacity: 0.4
-    // }).addTo(map);
-
-    //var url = 'https://{s}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw';
     var url = 'http://localhost:8080/geoserver/gwc/service/tms/1.0.0/loceng%3Alocality_bdys_display@EPSG%3A900913@pbf/{z}/{x}/{-y}.pbf';
 
     var vectorTileOptions = {
@@ -21,7 +20,6 @@ function init(){
                 fill: true,
                 stroke: true
             }
-
         },
         interactive: true,	// Make sure that this VectorGrid fires mouse/pointer events
         getFeatureId: function(f) {
@@ -36,15 +34,56 @@ function init(){
                 .setLatLng(e.latlng)
                 .openOn(map);
 
+            console.log(e.l);
+
             L.DomEvent.stop(e);
         })
-        // .on('mouseover', function(e) {	// The .on method attaches an event handler
-        // 	elayer.options.fillcolor = '#990000'
-
-        // 	L.DomEvent.stop(e);
-        // })
+//         .on('mouseover', function(e) {	// The .on method attaches an event handler
+//         	highlightFeature(e);
+//
+//         	L.DomEvent.stop(e);
+//         })
         .addTo(map);
 
-    //map.setView({ lat: 47.040182144806664, lng: 9.667968750000002 }, 0);
     map.setView([-33.85, 151.0], 12);
+}
+
+function style(feature) {
+    var renderVal = parseInt(feature.properties.percent);
+
+    return {
+        weight: 1,
+        opacity: 0.4,
+        color: '#666',
+        fillOpacity: 0.7,
+        fillColor: getColor(renderVal)
+    };
+}
+
+ // get color depending on ratio of count versus max value
+ function getColor(d) {
+   return d > 12 ? colours[6]:
+          d > 10 ? colours[5]:
+          d > 8 ? colours[4]:
+          d > 6 ? colours[3]:
+          d > 4 ? colours[2]:
+          d > 2 ? colours[1]:
+                  colours[0];
+ }
+
+function highlightFeature(e) {
+    var layer = e.target;
+
+    layer.setStyle({
+        color: '#444',
+        weight: 2,
+        opacity: 0.9,
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera) {
+        layer.bringToFront();
+    }
+
+//    info.update(layer.feature.properties);
 }
