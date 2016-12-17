@@ -1,2 +1,2 @@
 # prototypes
-A place to store my test code
+A place to store my Leaflet & Python test code
