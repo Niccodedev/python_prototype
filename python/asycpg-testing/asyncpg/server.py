@@ -14,9 +14,6 @@ app = Sanic()
 app.debug = True
 
 
-
-
-
 async def initdb_pool():
     dbdict = {"database": "geo", "user": "postgres", "password": "password", "host": "localhost", "port": 5432}
     return await asyncpg.create_pool(**dbdict)
@@ -30,12 +27,21 @@ async def test(request):
 # http://127.0.0.1:8000/get-data/151.14/-33.85/151.15/-33.84/15/
 
 # @app.route("/get-data/"
-#            "<ml:\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$>/"
-#            "<mb:^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)>/"
-#            "<mr:\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$>/"
-#            "<mt:^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)>/"
-#            "<z:[0-9]>/")
-@app.route("/get-data/")
+#            "<ml>/"
+#            "<mb>/"
+#            "<mr>/"
+#            "<mt>/"
+#            "<z>/")
+
+# :^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)
+
+
+@app.route("/get-data/"
+           "<ml:\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)>/"
+           "<mb>/"
+           "<mr:\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)>/"
+           "<mt>/"
+           "<z>/")
 async def get_data(request, ml, mb, mr, mt, z):
     async with engine.acquire() as connection:
 
@@ -110,4 +116,4 @@ def get_decimal_places(zoom_level):
 
 if __name__ == "__main__":
     engine = loop.run_until_complete(initdb_pool())
-    app.go_fast(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
