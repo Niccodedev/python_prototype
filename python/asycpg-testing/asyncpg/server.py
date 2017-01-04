@@ -1,12 +1,9 @@
 
 import asyncpg
-# import asyncio
-# import json
 import math
 import uvloop
 
-from datetime import datetime
-
+# from datetime import datetime
 from sanic import Sanic
 from sanic import response
 
@@ -34,20 +31,13 @@ async def test(request):
 # http://127.0.0.1:8000/get-data/151.14/-33.85/151.15/-33.84/15/
 # http://127.0.0.1:8000/get-data/151.10/-33.85/151.15/-33.80/14/
 
-LONGITUDE_PATTERN = "^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$"
+# LONGITUDE_PATTERN = "^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$"
+# LATITUDE_PATTERN = ""
 
 GET_DATA_URL = "/get-data/<ml>/<mb>/<mr>/<mt>/<z>/"
-    # .format(LONGITUDE_PATTERN)
 
 
 @app.route(GET_DATA_URL)
-# :^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)
-# @app.route("/get-data/"
-#            "<ml:\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)>/"
-#            "<mb>/"
-#            "<mr:\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)>/"
-#            "<mt>/"
-#            "<z>/")
 async def get_data(request, ml, mb, mr, mt, z):
     # start_time = datetime.now()
 
@@ -101,12 +91,10 @@ async def get_data(request, ml, mb, mr, mt, z):
                 return response.json({'ok': False, 'error': 'No data returned'})
             else:
                 # print("result is ", result)
-
                 # print("Got data in : {0} seconds".format(datetime.now() - start_time))
                 # start_time = datetime.now()
 
                 geojson_result = await convert_to_geojson(result)
-
                 # print("Converted to GeoJSON : {0} seconds".format(datetime.now() - start_time))
 
                 return response.text(geojson_result)
