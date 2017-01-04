@@ -30,17 +30,21 @@ settings['pg_connect_string'] = "dbname='{0}' host='{1}' port='{2}' user='{3}' p
 def homepage():
     return render_template('index.html')
 
+GET_DATA_URL = "/get-data/<ml>/<mb>/<mr>/<mt>/<z>/"
 
-@app.route("/get-data")
-def bdys():
+
+@app.route(GET_DATA_URL)
+def bdys(ml, mb, mr, mt, z):
     # start_time = datetime.now()
 
-    # Get parameters from querystring
-    map_left = request.args.get('ml')
-    map_bottom = request.args.get('mb')
-    map_right = request.args.get('mr')
-    map_top = request.args.get('mt')
-    zoom_level = int(request.args.get('z'))
+    zoom_level = int(z)
+
+    # # Get parameters from querystring
+    # map_left = request.args.get('ml')
+    # map_bottom = request.args.get('mb')
+    # map_right = request.args.get('mr')
+    # map_top = request.args.get('mt')
+    # zoom_level = int(request.args.get('z'))
 
     # Try to connect to Postgres
     try:
@@ -77,7 +81,7 @@ def bdys():
     sql = "SELECT x::text || y::text AS id, percent, difference, ST_AsGeoJSON(geom, {0}) AS geometry " \
           "FROM {1}.{2} " \
           "WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point({3}, {4}), ST_Point({5}, {6})), 4326),geom)"\
-        .format(decimal_places, settings['pg_schema'], table_name, map_left, map_bottom, map_right, map_top)
+        .format(decimal_places, settings['pg_schema'], table_name, ml, mb, mr, mt)
 
     try:
         pg_cur.execute(sql)

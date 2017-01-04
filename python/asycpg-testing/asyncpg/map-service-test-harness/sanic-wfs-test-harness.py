@@ -37,10 +37,10 @@ request_type = "WFS"
 # urllib.request.install_opener(opener)
 
 # Total number of requests
-requests = 100
+requests = 10000
 
 # Number of concurrent processes to run
-processes = 10
+processes = 100
 
 # Max pause between requests (in whole milliseconds)
 max_pause = 2500

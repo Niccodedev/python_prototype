@@ -49,8 +49,7 @@ GET_DATA_URL = "/get-data/<ml>/<mb>/<mr>/<mt>/<z>/"
 #            "<mt>/"
 #            "<z>/")
 async def get_data(request, ml, mb, mr, mt, z):
-
-    start_time = datetime.now()
+    # start_time = datetime.now()
 
     async with engine.acquire() as connection:
 
@@ -103,26 +102,18 @@ async def get_data(request, ml, mb, mr, mt, z):
             else:
                 # print("result is ", result)
 
-                print("Got data in : {0} seconds".format(datetime.now() - start_time))
-                start_time = datetime.now()
+                # print("Got data in : {0} seconds".format(datetime.now() - start_time))
+                # start_time = datetime.now()
 
                 geojson_result = await convert_to_geojson(result)
 
-                print("Converted to GeoJSON : {0} seconds".format(datetime.now() - start_time))
+                # print("Converted to GeoJSON : {0} seconds".format(datetime.now() - start_time))
 
                 return response.text(geojson_result)
 
 
 async def convert_to_geojson(result):
-
-    # # Get the column names returned
-    # col_names = result[0].keys()
-    # print(str(col_names))
-
-    # Find the index of the column that holds the geometry
-    # geom_index = col_names.index("geometry")
-
-    # output is the main content, row_output is the content from each record returned
+    # output is the main content
     output = ['{"type":"FeatureCollection","features":[']
     i = 0
 
