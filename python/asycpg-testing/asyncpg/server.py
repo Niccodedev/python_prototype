@@ -10,7 +10,7 @@ from sanic import response
 loop = uvloop.new_event_loop()
 
 app = Sanic()
-app.debug = True
+app.debug = False
 
 # Serve files from the static folder to the URL /static
 app.static('/', './static')
