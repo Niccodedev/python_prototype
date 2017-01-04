@@ -7,16 +7,17 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from flask import Response
-from flask.ext.compress import Compress
+from flask_compress import Compress
 
 app = Flask(__name__, static_url_path='')
+app.debug = True
 Compress(app)
 
 # create postgres connect string
 settings = dict()
 settings['pg_host'] = os.getenv("PGHOST", "localhost")
 settings['pg_port'] = os.getenv("PGPORT", 5432)
-settings['pg_db'] = os.getenv("PGDATABASE", "psma_201602")
+settings['pg_db'] = os.getenv("PGDATABASE", "geo")
 settings['pg_user'] = os.getenv("PGUSER", "postgres")
 settings['pg_password'] = os.getenv("PGPASSWORD", "password")
 settings['pg_schema'] = "hex"
@@ -165,6 +166,5 @@ def get_decimal_places(zoom_level):
 
 
 if __name__ == '__main__':
-    app.debug = True
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=8000)
     # app.run(port=80)

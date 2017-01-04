@@ -308,14 +308,14 @@ function init() {
 			}
 
 			// TO FIX: ERRORS NOT BEING TRAPPED
-			try {
+			// try {
 				geojsonLayer = L.geoJson(json, {
 						style : style,
 						onEachFeature : onEachFeature
 					}).addTo(map);
-			} catch (err) {
-				alert("Couldn't get data!");
-			}
+			// } catch (err) {
+			// 	alert("Couldn't get data!");
+			// }
 		}
 
 		console.timeEnd("parsed GeoJSON");
