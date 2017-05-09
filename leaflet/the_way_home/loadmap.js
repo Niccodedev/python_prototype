@@ -34,6 +34,7 @@ function init(){
         if (images[i].src.indexOf('/light_all/') > 0) {
             images[i].className += ' tile-light';
 //            console.log(images[i].classList);
+            images[i].clipPath="url(#clip)"
         }
 
         if (images[i].src.indexOf('/dark_all/') > 0) {
