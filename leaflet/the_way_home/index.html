@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>The Way Home</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet-src.js"></script>
+    <script src="./loadmap.js"></script>
+    <style>
+        .img.leaflet-tile.dark.leaflet-tile-loaded{
+            opacity:.5;
+        }
+    </style>
+</head>
+<body onload="init()">
+    <div id="mapdiv" style="width: 100vw; height: 100vh"></div>
+    <svg width="500" height="500">
+        <clippath id="clip" >
+            <circle cx="50" cy="50" r="50" class="a"/>
+        </clippath>
+
+        <!--<image xlink:href="https://placekitten.com/g/200/300" width="500" height="500" x="0" y="0" class="one"/>-->
+
+        <!--<image xlink:href="https://placekitten.com/g/200/300" width="500" height="500" x="0" y="0" clip-path="url(#clip)"/>-->
+    </svg>
+</body>
+</html>
