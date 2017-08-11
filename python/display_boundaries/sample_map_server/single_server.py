@@ -9,7 +9,7 @@ import logging
 import os
 import psycopg2
 import psycopg2.extras
-import sys
+# import sys
 
 from datetime import datetime
 
@@ -51,25 +51,43 @@ parser = argparse.ArgumentParser(
 
 # debugging? - sets database connection to localhost superuser if true
 parser.add_argument('-d', action='store_true', default=False)
+
+# PG Options
+parser.add_argument(
+    '--pghost',
+    help='Host name for Postgres server. Defaults to PGHOST environment variable if set, otherwise localhost.')
+parser.add_argument(
+    '--pgport', type=int,
+    help='Port number for Postgres server. Defaults to PGPORT environment variable if set, otherwise 5432.')
+parser.add_argument(
+    '--pgdb',
+    help='Database name for Postgres server. Defaults to PGDATABASE environment variable if set, '
+         'otherwise geo.')
+parser.add_argument(
+    '--pguser',
+    help='Username for Postgres server. Defaults to PGUSER environment variable if set, otherwise postgres.')
+parser.add_argument(
+    '--pgpassword',
+    help='Password for Postgres server. Defaults to PGPASSWORD environment variable if set, '
+         'otherwise \'password\'.')
+
 args = parser.parse_args()
-
-
 
 settings = dict()
 
 # create postgres connect string
-settings['pg_connect_string'] = "dbname={DB} host={HOST} port={PORT} user={USER} password={PASS}" \
-    .format(**pg_settings)
+settings['pg_host'] = args.pghost or os.getenv("PGHOST", "localhost")
+settings['pg_port'] = args.pgport or os.getenv("PGPORT", 5432)
+settings['pg_db'] = args.pgdb or os.getenv("POSTGRES_USER", "geo")
+settings['pg_user'] = args.pguser or os.getenv("POSTGRES_USER", "postgres")
+settings['pg_password'] = args.pgpassword or os.getenv("POSTGRES_PASSWORD", "password")
 
-# # max parallel processes in Postgres (limit it to 3 to lay off L10-GEOSDI)
-# settings['max_concurrent_processes'] = 3
-#
-# # set the zoom level that the geoms will be thinned to - for spatial querying only - NOT for display
-# settings["default_zoom_level"] = 10
+settings['pg_connect_string'] = "dbname='{0}' host='{1}' port='{2}' user='{3}' password='{4}'".format(
+    settings['pg_db'], settings['pg_host'], settings['pg_port'], settings['pg_user'], settings['pg_password'])
 
 # target schema and tables
-settings['input_schema'] = "working_geo"
-settings['default_table'] = "locality_bdys"
+settings['input_schema'] = "test"
+settings['default_table'] = "vw_locality_bdys_display_full_res"
 settings['input_table_suffix'] = "display"
 
 # connect to Postgres
@@ -96,6 +114,8 @@ def get_data():
 
     table_name = request.args.get('t')
     zoom_level = int(request.args.get('z'))
+
+    print(table_name)
 
     # get the boundary table name from zoom level
     if table_name is None:

@@ -36,9 +36,9 @@ for (i = 0; i < querystring.length; i+=1) {
 }
 
 // get/set table name from querystring
-if (!queryObj.t) {
-   table_name = "locality_bdys";
-} else {
+if (queryObj.t) {
+//   table_name = "locality_bdys";
+//} else {
     table_name = queryObj.t.toString();
 }
 
@@ -164,8 +164,10 @@ function getData() {
     ua.push(ne.lng.toString());
     ua.push("&mt=");
     ua.push(ne.lat.toString());
-    ua.push("&t=");
-    ua.push(table_name);
+    if (table_name) {
+        ua.push("&t=");
+        ua.push(table_name);
+    }
     ua.push("&z=");
     ua.push((currentZoomLevel).toString());
 
