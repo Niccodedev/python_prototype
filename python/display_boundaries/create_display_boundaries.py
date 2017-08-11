@@ -32,9 +32,8 @@ def main():
     parser = argparse.ArgumentParser(
         description='Creates boundary tables optimised for web visualisation')
 
-    # debugging? - sets database connection to localhost superuser if true
-    parser.add_argument('-d', action='store_true', default=False)
-    args = parser.parse_args()
+    # # debugging? - sets database connection to localhost superuser if true
+    # parser.add_argument('-d', action='store_true', default=False)
 
     # PG Options
     parser.add_argument(
@@ -54,6 +53,8 @@ def main():
         '--pgpassword',
         help='Password for Postgres server. Defaults to PGPASSWORD environment variable if set, '
              'otherwise \'password\'.')
+
+    args = parser.parse_args()
 
     settings = dict()
 
@@ -79,7 +80,7 @@ def main():
         {"table": "commonwealth_electorates", "id_field": "ce_pid", "name_field": "name", "state_field": "state"},
         {"table": "local_government_areas", "id_field": "lga_pid", "name_field": "name", "state_field": "state"},
         {"table": "local_government_wards", "id_field": "ward_pid", "name_field": "name", "state_field": "state"},
-        {"table": "locality_bdys_display_full_res", "id_field": "locality_pid", "name_field": "locality_name", "state_field": "state"},
+        {"table": "vw_locality_bdys_display_full_res", "id_field": "locality_pid", "name_field": "locality_name", "state_field": "state"},
         {"table": "state_bdys", "id_field": "state_pid", "name_field": "state", "state_field": "state"},
         {"table": "state_lower_house_electorates", "id_field": "se_lower_pid", "name_field": "name", "state_field": "state"},
         {"table": "state_upper_house_electorates", "id_field": "se_upper_pid", "name_field": "name", "state_field": "state"}]
@@ -87,9 +88,6 @@ def main():
 
     settings['output_schema'] = "test"
     settings['output_table_suffix'] = "display"
-
-    # log Python version
-    utils.check_python_version(logger)
 
     # connect to Postgres
     try:
@@ -102,15 +100,11 @@ def main():
         logger.exception(message)
         return False
 
-    # # set Postgres role
-    # pg_cur.execute("SET ROLE ")
-
     # log PostGIS version
     utils.check_postgis_version(pg_cur, settings, logger)
 
     # Optimise boundaries for web visualisation
-    success = create_display_boundaries(settings, "rw")
-    # success = create_display_boundaries(settings, pg_settings["USER"])
+    success = create_display_boundaries(settings, settings['pg_user'])
     logger.info("Web optimised boundaries created : {0}".format(datetime.now() - start_time))
 
     pg_cur.close()
@@ -233,8 +227,6 @@ if __name__ == '__main__':
     console.setFormatter(formatter)
     # add the handler to the root logger
     logging.getLogger('').addHandler(console)
-
-    utils.check_python_version(logger)
 
     logger.info("")
     logger.info("Start display boundary processing")
