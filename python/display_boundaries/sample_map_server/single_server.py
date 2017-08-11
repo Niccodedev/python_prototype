@@ -100,26 +100,31 @@ pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 def homepage():
     return render_template('index.html')
 
+GET_DATA_URL = "/get-data/<map_left>/<map_bottom>/<map_right>/<map_top>/<z>/"
 
-@app.route("/get-data")
-def get_data():
-    full_start_time = datetime.now()
-    # start_time = datetime.now()
 
-    # Get parameters from querystring
-    map_left = request.args.get('ml')
-    map_bottom = request.args.get('mb')
-    map_right = request.args.get('mr')
-    map_top = request.args.get('mt')
+@app.route(GET_DATA_URL)
+def bdys(map_left, map_bottom, map_right, map_top, z):
+    # full_start_time = datetime.now()
 
-    table_name = request.args.get('t')
-    zoom_level = int(request.args.get('z'))
+    zoom_level = int(z)
 
-    print(table_name)
+    # # Get parameters from querystring
+    # map_left = request.args.get('ml')
+    # map_bottom = request.args.get('mb')
+    # map_right = request.args.get('mr')
+    # map_top = request.args.get('mt')
+    # zoom_level = int(request.args.get('z'))
+
+
+    # table_name = request.args.get('t')
+    # # zoom_level = int(request.args.get('z'))
+    #
+    # print(table_name)
 
     # get the boundary table name from zoom level
-    if table_name is None:
-        table_name = settings['default_table']
+    # if table_name is None:
+    table_name = settings['default_table']
 
     table_name += "_"
     table_name += settings['input_table_suffix']
@@ -184,13 +189,13 @@ def get_data():
     output_dict["features"] = feature_array
 
     # print("Parsed records into JSON in {1}".format(i, datetime.now() - start_time))
-    print("get-data: returned {0} records  {1}".format(i, datetime.now() - full_start_time))
+    # print("get-data: returned {0} records  {1}".format(i, datetime.now() - full_start_time))
 
     return Response(json.dumps(output_dict), mimetype='application/json')
 
 
 if __name__ == '__main__':
     if args.d:
-        app.run(host='0.0.0.0', port=8081, debug=True)
+        app.run(host='0.0.0.0', port=8000, debug=True)
     else:
-        app.run(host='0.0.0.0', port=8081, debug=False)
+        app.run(host='0.0.0.0', port=8000, debug=True)

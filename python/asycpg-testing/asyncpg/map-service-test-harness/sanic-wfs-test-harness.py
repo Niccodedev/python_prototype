@@ -37,13 +37,13 @@ request_type = "WFS"
 # urllib.request.install_opener(opener)
 
 # Total number of requests
-requests = 10000
+requests = 1000
 
 # Number of concurrent processes to run
 processes = 100
 
 # Max pause between requests (in whole milliseconds)
-max_pause = 2500
+max_pause = 2000
 
 # WMS Map tiles? (i.e. 256 x 256 pixel images in a Google/Bing Maps grid?)
 map_tiles = True
