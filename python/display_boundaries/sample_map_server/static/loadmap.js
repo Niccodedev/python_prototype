@@ -155,20 +155,31 @@ function getData() {
 
     // build URL
     var ua = [];
+//    ua.push(dataUrl);
+//    ua.push("?ml=");
+//    ua.push(sw.lng.toString());
+//    ua.push("&mb=");
+//    ua.push(sw.lat.toString());
+//    ua.push("&mr=");
+//    ua.push(ne.lng.toString());
+//    ua.push("&mt=");
+//    ua.push(ne.lat.toString());
+//    if (table_name) {
+//        ua.push("&t=");
+//        ua.push(table_name);
+//    }
+//    ua.push("&z=");
+//    ua.push((currentZoomLevel).toString());
     ua.push(dataUrl);
-    ua.push("?ml=");
+    ua.push("/");
     ua.push(sw.lng.toString());
-    ua.push("&mb=");
+    ua.push("/");
     ua.push(sw.lat.toString());
-    ua.push("&mr=");
+    ua.push("/");
     ua.push(ne.lng.toString());
-    ua.push("&mt=");
+    ua.push("/");
     ua.push(ne.lat.toString());
-    if (table_name) {
-        ua.push("&t=");
-        ua.push(table_name);
-    }
-    ua.push("&z=");
+    ua.push("/");
     ua.push((currentZoomLevel).toString());
 
     var requestString = ua.join("");

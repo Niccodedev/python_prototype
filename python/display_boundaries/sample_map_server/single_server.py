@@ -15,13 +15,16 @@ from datetime import datetime
 
 from flask import Flask
 from flask import render_template
-from flask import request
+# from flask import request
 from flask import Response
 from flask_compress import Compress
+from flask_cors import CORS, cross_origin
 
 from psycopg2.extensions import AsIs
 
 app = Flask(__name__, static_url_path='')
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 Compress(app)
 
 start_time = datetime.now()
@@ -97,23 +100,25 @@ pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 @app.route("/")
+@cross_origin()
 def homepage():
     return render_template('index.html')
 
-GET_DATA_URL = "/get-data/<map_left>/<map_bottom>/<map_right>/<map_top>/<z>/"
+GET_DATA_URL = "/get-data/<ml>/<mb>/<mr>/<mt>/<z>/"
 
 
 @app.route(GET_DATA_URL)
-def bdys(map_left, map_bottom, map_right, map_top, z):
+@cross_origin()
+def bdys(ml, mb, mr, mt, z):
     # full_start_time = datetime.now()
 
     zoom_level = int(z)
 
     # # Get parameters from querystring
-    # map_left = request.args.get('ml')
-    # map_bottom = request.args.get('mb')
-    # map_right = request.args.get('mr')
-    # map_top = request.args.get('mt')
+    # ml = request.args.get('ml')
+    # mb = request.args.get('mb')
+    # mr = request.args.get('mr')
+    # mt = request.args.get('mt')
     # zoom_level = int(request.args.get('z'))
 
 
@@ -139,7 +144,7 @@ def bdys(map_left, map_bottom, map_right, map_top, z):
         .format(settings['input_schema'])
 
     sql = pg_cur.mogrify(sql_template, (AsIs(display_zoom), AsIs(table_name),
-                                        AsIs(map_left), AsIs(map_bottom), AsIs(map_right), AsIs(map_top)))
+                                        AsIs(ml), AsIs(mb), AsIs(mr), AsIs(mt)))
 
     try:
         pg_cur.execute(sql)
@@ -195,7 +200,7 @@ def bdys(map_left, map_bottom, map_right, map_top, z):
 
 
 if __name__ == '__main__':
-    if args.d:
-        app.run(host='0.0.0.0', port=8000, debug=True)
-    else:
-        app.run(host='0.0.0.0', port=8000, debug=True)
+    # if args.d:
+    #     app.run(host='0.0.0.0', port=8000, debug=True)
+    # else:
+    app.run(host='0.0.0.0', port=8000, debug=True)

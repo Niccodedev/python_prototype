@@ -5,12 +5,14 @@ import psycopg2
 
 from flask import Flask
 from flask import render_template
-from flask import request
+# from flask import request
 from flask import Response
+from flask_cors import CORS, cross_origin
 from flask_compress import Compress
 
 app = Flask(__name__, static_url_path='')
-app.debug = True
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 Compress(app)
 
 # create postgres connect string
@@ -34,6 +36,7 @@ GET_DATA_URL = "/get-data/<ml>/<mb>/<mr>/<mt>/<z>/"
 
 
 @app.route(GET_DATA_URL)
+@cross_origin()
 def bdys(ml, mb, mr, mt, z):
     # start_time = datetime.now()
 
