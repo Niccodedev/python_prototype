@@ -65,7 +65,8 @@ GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/<z>/<t>/"
 def bdys(ml, mb, mr, mt, z, t):
     # abort if no PG connection
     if not pg_conn_good:
-        return Response("Epic fail - Couldn't connect to Postgres server!", mimetype='text/plain')
+        return Response("Epic fail - Couldn't connect to Postgres server!</br></br>{}"
+                        .format(settings['pg_connect_string'],), mimetype='text/plain')
 
     zoom_level = int(z)
     display_zoom = str(zoom_level).zfill(2)
