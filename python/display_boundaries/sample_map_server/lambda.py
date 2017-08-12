@@ -2,21 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # import arguments
-import argparse
 import ast
 import json
-# import logging
 import os
 import psycopg2
 import psycopg2.extras
-import ssl
-# import sys
-
-from datetime import datetime
 
 from flask import Flask
-# from flask import render_template
-from flask import request
 from flask import Response
 # from flask_compress import Compress
 # from flask_cors import CORS, cross_origin
@@ -54,46 +46,29 @@ settings['pg_table'] = "vw_locality_bdys_display_full_res_display"
 
 # connect to Postgres
 pg_conn_good = False
-
 try:
     pg_conn = psycopg2.connect(settings['pg_connect_string'])
     pg_conn.autocommit = True
-    pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)  # get query rows as a list of dictionaries
     pg_conn_good = True
 except psycopg2.Error:
     pass
 
-GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/<z>/<t>"
+# URL format for getting boundary data
+GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/<z>/<t>/"
+
+# e.g. https://859uppjni0.execute-api.ap-southeast-2.amazonaws.com/dev/151.0730838775635/-33.894428556111/151.2268924713135/-33.805610879310436/14/locality_bdys_display_full_res_display/
 
 
 @app.route(GET_DATA_URL)
 # @cross_origin()
-def bdys(ml, mb, mr, mt, z, t=settings['pg_table']):
-
+def bdys(ml, mb, mr, mt, z, t):
     # abort if no PG connection
     if not pg_conn_good:
         return Response("Epic fail - Couldn't connect to Postgres server!", mimetype='text/plain')
 
     zoom_level = int(z)
-
-    # Get parameters from querystring
-    ml = request.args.get('ml')
-    mb = request.args.get('mb')
-    mr = request.args.get('mr')
-    mt = request.args.get('mt')
-    zoom_level = int(request.args.get('z'))
-
-    if t is None:
-        t = request.args.get('t')
-
-    # print(t)
-
     display_zoom = str(zoom_level).zfill(2)
-
-    # test_output = dict()
-    # test_output["yo"] = "Hello World!"
-    #
-    # return Response(json.dumps(test_output), mimetype='application/json')
 
     # build SQL with SQL injection protection
     # yes, this is ridiculous - if someone can find a shorthand way of doing this then fire up the pull requests!
@@ -107,16 +82,13 @@ def bdys(ml, mb, mr, mt, z, t=settings['pg_table']):
     try:
         pg_cur.execute(sql)
     except psycopg2.Error:
-        return "I can't SELECT:<br/><br/>" + str(sql)
+        return Response("Epic fail - can't SELECT:<br/><br/>" + str(sql), mimetype='text/plain')
 
     # Retrieve the results of the query
     rows = pg_cur.fetchall()
 
     # Get the column names returned
     col_names = [desc[0] for desc in pg_cur.description]
-
-    # print("Got records from Postgres in {0}".format(datetime.now() - start_time))
-    # start_time = datetime.now()
 
     # output is the main content, row_output is the content from each record returned
     output_dict = dict()
@@ -151,23 +123,8 @@ def bdys(ml, mb, mr, mt, z, t=settings['pg_table']):
     # Assemble the GeoJSON
     output_dict["features"] = feature_array
 
-    # print("Parsed records into JSON in {1}".format(i, datetime.now() - start_time))
-    # print("get-data: returned {0} records  {1}".format(i, datetime.now() - full_start_time))
-
     return Response(json.dumps(output_dict), mimetype='application/json')
 
 
 if __name__ == '__main__':
-    # if args.d:
-    #     app.run(host='0.0.0.0', port=8000, debug=True)
-    # else:
-
-    # run with Zappa
     app.run()
-
-    # run over HTTP
-    # app.run(host='0.0.0.0', port=8000, debug=True)
-
-    # run over HTTPS
-    # context = ('cert.crt', 'key.key')
-    # app.run(host='0.0.0.0', port=8443, ssl_context=context, debug=True)
