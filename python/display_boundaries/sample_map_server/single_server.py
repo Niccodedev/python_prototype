@@ -9,6 +9,7 @@ import logging
 import os
 import psycopg2
 import psycopg2.extras
+import ssl
 # import sys
 
 from datetime import datetime
@@ -203,4 +204,10 @@ if __name__ == '__main__':
     # if args.d:
     #     app.run(host='0.0.0.0', port=8000, debug=True)
     # else:
+
+    # run over HTTP
     app.run(host='0.0.0.0', port=8000, debug=True)
+
+    # run over HTTPS
+    # context = ('cert.crt', 'key.key')
+    # app.run(host='0.0.0.0', port=8443, ssl_context=context, debug=True)
