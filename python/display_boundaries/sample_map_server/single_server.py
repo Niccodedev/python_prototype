@@ -23,7 +23,7 @@ from flask_cors import CORS, cross_origin
 
 from psycopg2.extensions import AsIs
 
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 Compress(app)
@@ -100,10 +100,10 @@ pg_conn.autocommit = True
 pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
 
-@app.route("/")
-@cross_origin()
-def homepage():
-    return render_template('index.html')
+# @app.route("/")
+# @cross_origin()
+# def homepage():
+#     return render_template('index.html')
 
 GET_DATA_URL = "/get-data/<ml>/<mb>/<mr>/<mt>/<z>/"
 
@@ -122,7 +122,6 @@ def bdys(ml, mb, mr, mt, z):
     # mt = request.args.get('mt')
     # zoom_level = int(request.args.get('z'))
 
-
     # table_name = request.args.get('t')
     # # zoom_level = int(request.args.get('z'))
     #
@@ -137,67 +136,73 @@ def bdys(ml, mb, mr, mt, z):
 
     display_zoom = str(zoom_level).zfill(2)
 
-    # build SQL with SQL injection protection
-    # yes, this is ridiculous - if someone can find a shorthand way of doing this then fire up the pull requests!
-    sql_template = "SELECT bdy.id, bdy.name, bdy.state, geojson_%s AS geometry " \
-                   "FROM {0}.%s AS bdy " \
-                   "WHERE bdy.geom && ST_MakeEnvelope(%s, %s, %s, %s, 4283)"\
-        .format(settings['input_schema'])
+    test_output = dict()
+    test_output["greeting"] = "Hello World!"
 
-    sql = pg_cur.mogrify(sql_template, (AsIs(display_zoom), AsIs(table_name),
-                                        AsIs(ml), AsIs(mb), AsIs(mr), AsIs(mt)))
+    return Response(json.dumps(test_output), mimetype='application/json')
 
-    try:
-        pg_cur.execute(sql)
-    except psycopg2.Error:
-        return "I can't SELECT:<br/><br/>" + str(sql)
-
-    # Retrieve the results of the query
-    rows = pg_cur.fetchall()
-
-    # Get the column names returned
-    col_names = [desc[0] for desc in pg_cur.description]
-
-    # print("Got records from Postgres in {0}".format(datetime.now() - start_time))
-    # start_time = datetime.now()
-
-    # output is the main content, row_output is the content from each record returned
-    output_dict = dict()
-    output_dict["type"] = "FeatureCollection"
-
-    i = 0
-    feature_array = list()
-
-    # For each row returned...
-    for row in rows:
-        feature_dict = dict()
-        feature_dict["type"] = "Feature"
-
-        properties_dict = dict()
-
-        # For each field returned, assemble the feature and properties dictionaries
-        for col in col_names:
-            if col == 'geometry':
-                feature_dict["geometry"] = ast.literal_eval(str(row[col]))
-            elif col == 'id':
-                feature_dict["id"] = row[col]
-            else:
-                properties_dict[col] = row[col]
-
-        feature_dict["properties"] = properties_dict
-
-        feature_array.append(feature_dict)
-
-        # start over
-        i += 1
-
-    # Assemble the GeoJSON
-    output_dict["features"] = feature_array
-
-    # print("Parsed records into JSON in {1}".format(i, datetime.now() - start_time))
-    # print("get-data: returned {0} records  {1}".format(i, datetime.now() - full_start_time))
-
-    return Response(json.dumps(output_dict), mimetype='application/json')
+    #
+    # # build SQL with SQL injection protection
+    # # yes, this is ridiculous - if someone can find a shorthand way of doing this then fire up the pull requests!
+    # sql_template = "SELECT bdy.id, bdy.name, bdy.state, geojson_%s AS geometry " \
+    #                "FROM {0}.%s AS bdy " \
+    #                "WHERE bdy.geom && ST_MakeEnvelope(%s, %s, %s, %s, 4283)"\
+    #     .format(settings['input_schema'])
+    #
+    # sql = pg_cur.mogrify(sql_template, (AsIs(display_zoom), AsIs(table_name),
+    #                                     AsIs(ml), AsIs(mb), AsIs(mr), AsIs(mt)))
+    #
+    # try:
+    #     pg_cur.execute(sql)
+    # except psycopg2.Error:
+    #     return "I can't SELECT:<br/><br/>" + str(sql)
+    #
+    # # Retrieve the results of the query
+    # rows = pg_cur.fetchall()
+    #
+    # # Get the column names returned
+    # col_names = [desc[0] for desc in pg_cur.description]
+    #
+    # # print("Got records from Postgres in {0}".format(datetime.now() - start_time))
+    # # start_time = datetime.now()
+    #
+    # # output is the main content, row_output is the content from each record returned
+    # output_dict = dict()
+    # output_dict["type"] = "FeatureCollection"
+    #
+    # i = 0
+    # feature_array = list()
+    #
+    # # For each row returned...
+    # for row in rows:
+    #     feature_dict = dict()
+    #     feature_dict["type"] = "Feature"
+    #
+    #     properties_dict = dict()
+    #
+    #     # For each field returned, assemble the feature and properties dictionaries
+    #     for col in col_names:
+    #         if col == 'geometry':
+    #             feature_dict["geometry"] = ast.literal_eval(str(row[col]))
+    #         elif col == 'id':
+    #             feature_dict["id"] = row[col]
+    #         else:
+    #             properties_dict[col] = row[col]
+    #
+    #     feature_dict["properties"] = properties_dict
+    #
+    #     feature_array.append(feature_dict)
+    #
+    #     # start over
+    #     i += 1
+    #
+    # # Assemble the GeoJSON
+    # output_dict["features"] = feature_array
+    #
+    # # print("Parsed records into JSON in {1}".format(i, datetime.now() - start_time))
+    # # print("get-data: returned {0} records  {1}".format(i, datetime.now() - full_start_time))
+    #
+    # return Response(json.dumps(output_dict), mimetype='application/json')
 
 
 if __name__ == '__main__':
@@ -205,8 +210,11 @@ if __name__ == '__main__':
     #     app.run(host='0.0.0.0', port=8000, debug=True)
     # else:
 
+    # run with Zappa
+    app.run()
+
     # run over HTTP
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    # app.run(host='0.0.0.0', port=8000, debug=True)
 
     # run over HTTPS
     # context = ('cert.crt', 'key.key')
