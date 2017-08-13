@@ -64,7 +64,7 @@ map_image_height = 768
 
 # AWS Lambda WFS parameters
 base_url = "https://859uppjni0.execute-api.ap-southeast-2.amazonaws.com/dev"
-# base_url = "http://127.0.0.1:8000"
+# base_url = "http://127.0.0.1:5000"
 
 # Dictionary of max and min coordinates in web mercator (metres). Used to randomly set map extents
 max_bounding_boxes = {1: [16796997.0, -4020748.0, 16835959.0, -3995282.0],  # Sydney
