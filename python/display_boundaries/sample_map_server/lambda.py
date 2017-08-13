@@ -40,7 +40,7 @@ settings['pg_connect_string'] = "dbname='{0}' host='{1}' port='{2}' user='{3}' p
     settings['pg_db'], settings['pg_host'], settings['pg_port'], settings['pg_user'], settings['pg_password'])
 
 # target schema and tables
-settings['pg_schema'] = os.getenv("PGSCHEMA", "admin_bdys_201705_displ")
+settings['pg_schema'] = os.getenv("PGSCHEMA", "admin_bdys_201705_display")
 settings['pg_table'] = "vw_locality_bdys_display_full_res_display"
 
 # connect to Postgres
