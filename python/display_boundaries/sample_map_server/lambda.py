@@ -10,16 +10,15 @@ import psycopg2.extras
 
 from flask import Flask
 from flask import Response
-# from flask_compress import Compress
-# from flask_cors import CORS, cross_origin
+from flask_compress import Compress
+from flask_cors import CORS, cross_origin
 
 from psycopg2.extensions import AsIs
 
 # create Flask app
 app = Flask(__name__)
-# cors = CORS(app)
-# app.config['CORS_HEADERS'] = 'Content-Type'
-# Compress(app)
+CORS(app)
+Compress(app)
 
 # # PG settings for debugging AWS PG server from outside of AWS
 # if 'SERVERTYPE' in os.environ and os.environ['SERVERTYPE'] == 'AWS Lambda':
@@ -62,7 +61,6 @@ GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/<z>/<t>/"
 
 
 @app.route(GET_DATA_URL)
-# @cross_origin()
 def bdys(ml, mb, mr, mt, z, t):
     # abort if no PG connection
     if not pg_conn_good:

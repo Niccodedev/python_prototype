@@ -38,7 +38,7 @@ request_type = "WFS"
 # urllib.request.install_opener(opener)
 
 # Total number of requests
-requests = 10000
+requests = 100
 
 # Number of concurrent processes to run
 processes = 20

@@ -4,6 +4,7 @@
         "aws_region": "ap-southeast-2",
         "profile_name": "default",
         "s3_bucket": "minus34.com",
+        "cors": true,
         "environment_variables": {
             "PGHOST": "52.63.139.50",
             "PGPORT": "5432",
