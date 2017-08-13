@@ -41,10 +41,10 @@ request_type = "WFS"
 requests = 1000
 
 # Number of concurrent processes to run
-processes = 100
+processes = 20
 
 # Max pause between requests (in whole milliseconds)
-max_pause = 2000
+max_pause = 500
 
 # WMS Map tiles? (i.e. 256 x 256 pixel images in a Google/Bing Maps grid?)
 map_tiles = True
@@ -64,6 +64,7 @@ map_image_height = 768
 
 # AWS Lambda WFS parameters
 base_url = "https://859uppjni0.execute-api.ap-southeast-2.amazonaws.com/dev"
+# base_url = "http://127.0.0.1:8000"
 
 # Dictionary of max and min coordinates in web mercator (metres). Used to randomly set map extents
 max_bounding_boxes = {1: [16796997.0, -4020748.0, 16835959.0, -3995282.0],  # Sydney

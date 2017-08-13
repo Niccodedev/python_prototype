@@ -40,7 +40,7 @@ request_type = "WFS"
 requests = 1000
 
 # Number of concurrent processes to run
-processes = 100
+processes = 10
 
 # Max pause between requests (in whole milliseconds)
 max_pause = 2000
