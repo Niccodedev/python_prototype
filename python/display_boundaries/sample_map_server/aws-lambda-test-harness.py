@@ -38,7 +38,7 @@ request_type = "WFS"
 # urllib.request.install_opener(opener)
 
 # Total number of requests
-requests = 100
+requests = 1000
 
 # Number of concurrent processes to run
 processes = 20
@@ -50,7 +50,7 @@ max_pause = 500
 map_tiles = True
 
 # Min/max zoom levels (only required if map_tiles = True)
-min_tile_level = 10
+min_tile_level = 11
 max_tile_level = 16
 
 # Map width limits in wms_srid units - allows random zoom scales to be tested
@@ -287,7 +287,9 @@ def log_results(results_list, elapsed_time):
     fail_count = 0
     bad_count = 0
     total_seconds = 0.0
-    total_size = 0
+    total_size = 0.0
+    max_seconds = 0.0
+    max_size = 0.0
 
     # Calculate some stats
     for item in results_list:
@@ -298,6 +300,13 @@ def log_results(results_list, elapsed_time):
             success_count += 1
             total_seconds += seconds
             total_size += file_size
+
+            if seconds > max_seconds:
+                max_seconds = seconds
+
+            if file_size > max_size:
+                max_size = file_size
+
         elif file_size == 0:
             fail_count += 1
         else:
@@ -313,6 +322,8 @@ def log_results(results_list, elapsed_time):
     log_entries.append(["Successful requests", success_count])
     log_entries.append(["Average time", avg_seconds, "seconds"])
     log_entries.append(["Average size", avg_size, "Kb"])
+    log_entries.append(["Maximum time", max_seconds, "seconds"])
+    log_entries.append(["Maximum size", max_size / 1024.0, "Kb"])
     log_entries.append(["Request/response failures", fail_count])
     log_entries.append(["Invalid responses", bad_count])
     log_entries.append([])
@@ -328,10 +339,13 @@ def log_results(results_list, elapsed_time):
     print("Finished:")
     print("\t- elapsed time : {}".format(elapsed_time))
     print("\t- success : {}".format(success_count))
+    print("\t- avg response time : {}".format(avg_seconds))
+    print("\t- avg size : {}".format(avg_size))
+    print("\t- max response time : {}".format(max_seconds))
+    print("\t- max size : {}".format(max_size / 1024.0))
     print("\t- failures:")
     print("\t\t- request/response failures : {}".format(fail_count))
     print("\t\t- invalid response : {}".format(bad_count))
-    print("\t- avg response time : {}".format(avg_seconds))
 
 
 # Adds a time stamp to a file name
