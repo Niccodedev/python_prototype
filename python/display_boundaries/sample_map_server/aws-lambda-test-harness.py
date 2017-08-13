@@ -38,7 +38,7 @@ request_type = "WFS"
 # urllib.request.install_opener(opener)
 
 # Total number of requests
-requests = 1000
+requests = 10000
 
 # Number of concurrent processes to run
 processes = 20
@@ -100,8 +100,6 @@ def main():
 
     # Finish by logging parameters used and the results
     log_results(results_list, elapsed_time)
-
-    print("Finished: elapsed time = ", str(elapsed_time))
 
 
 def create_requests(table_name):
@@ -201,6 +199,9 @@ def get_url(url):
         request = urllib.request.Request(url)
         result = urllib.request.urlopen(request, context=context).read()
         file_size = len(result)
+        # flag an error in the 'valid' response
+        if "epic fail" in str(result).lower():
+            file_size = -99999
     except urllib.request.URLError:
         # Print failures to screen (these aren't logged)
         print(''.join(["MAP REQUEST FAILED : ", url,  '\n', traceback.format_exc()]))
@@ -283,6 +284,8 @@ def log_results(results_list, elapsed_time):
     log_entries.append([])
 
     success_count = 0
+    fail_count = 0
+    bad_count = 0
     total_seconds = 0.0
     total_size = 0
 
@@ -295,6 +298,10 @@ def log_results(results_list, elapsed_time):
             success_count += 1
             total_seconds += seconds
             total_size += file_size
+        elif file_size == 0:
+            fail_count += 1
+        else:
+            bad_count += 1
 
     if success_count > 0:
         avg_seconds = total_seconds / float(success_count)
@@ -306,7 +313,8 @@ def log_results(results_list, elapsed_time):
     log_entries.append(["Successful requests", success_count])
     log_entries.append(["Average time", avg_seconds, "seconds"])
     log_entries.append(["Average size", avg_size, "Kb"])
-    log_entries.append(["Failed requests", requests - success_count])
+    log_entries.append(["Request/response failures", fail_count])
+    log_entries.append(["Invalid responses", bad_count])
     log_entries.append([])
     log_entries.append(["Time_seconds", "Image_bytes", "URL"])
 
@@ -316,6 +324,14 @@ def log_results(results_list, elapsed_time):
     log_writer.writerows(log_entries)
     log_writer.writerows(results_list)
     log_file.close()
+
+    print("Finished:")
+    print("\t- elapsed time : {}".format(elapsed_time))
+    print("\t- success : {}".format(success_count))
+    print("\t- failures:")
+    print("\t\t- request/response failures : {}".format(fail_count))
+    print("\t\t- invalid response : {}".format(bad_count))
+    print("\t- avg response time : {}".format(avg_seconds))
 
 
 # Adds a time stamp to a file name
