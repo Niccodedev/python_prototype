@@ -49,8 +49,8 @@ max_pause = 2000
 map_tiles = True
 
 # Min/max zoom levels (only required if map_tiles = True)
-min_tile_level = 11
-max_tile_level = 16
+min_tile_level = 10
+max_tile_level = 15
 
 # Map width limits in wms_srid units - allows random zoom scales to be tested
 # (required if map_tiles = False or request_type = "WFS")

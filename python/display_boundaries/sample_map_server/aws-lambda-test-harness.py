@@ -19,14 +19,15 @@
 # *********************************************************************************************************************
 
 import csv
+import datetime
 import math
+import multiprocessing
 import os
 import random
-import datetime
+import ssl
 import time
-import urllib.request
 import traceback
-import multiprocessing
+import urllib.request
 
 # WMS or WFS?
 request_type = "WFS"
@@ -37,13 +38,13 @@ request_type = "WFS"
 # urllib.request.install_opener(opener)
 
 # Total number of requests
-requests = 100
+requests = 1000
 
 # Number of concurrent processes to run
 processes = 100
 
 # Max pause between requests (in whole milliseconds)
-max_pause = 200
+max_pause = 2000
 
 # WMS Map tiles? (i.e. 256 x 256 pixel images in a Google/Bing Maps grid?)
 map_tiles = True
@@ -185,6 +186,8 @@ def create_random_bounds_list():
 # Gets a map image and returns the time taken (seconds), image size (bytes) and the URL for logging
 def get_url(url):
 
+    context = ssl._create_unverified_context()
+
     # wait for a random time to simulate real-world use
     random_pause = float(random.randint(0, max_pause)) / 1000.0
     time.sleep(random_pause)  # in seconds
@@ -195,7 +198,7 @@ def get_url(url):
     try:
         # Request map image and get its size as evidence of success or failure for logging
         request = urllib.request.Request(url)
-        result = urllib.request.urlopen(request).read()
+        result = urllib.request.urlopen(request, context=context).read()
         file_size = len(result)
     except urllib.request.URLError:
         # Print failures to screen (these aren't logged)
