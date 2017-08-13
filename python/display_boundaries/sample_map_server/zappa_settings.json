@@ -6,12 +6,12 @@
         "s3_bucket": "minus34.com",
         "cors": true,
         "environment_variables": {
-            "PGHOST": "52.63.139.50",
+            "PGHOST": "52.65.52.48",
             "PGPORT": "5432",
             "PGDB": "geo",
             "PGSCHEMA": "admin_bdys_201705_display",
             "PGUSER": "rouser",
-            "PGPASSWORD": "a613482C1d201a8be9007F82E4F2"
+            "PGPASSWORD": "864b40E01e8970c56cf8E77884E5"
         }
     }
 }
