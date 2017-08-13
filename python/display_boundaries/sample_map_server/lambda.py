@@ -46,13 +46,14 @@ settings['pg_table'] = "vw_locality_bdys_display_full_res_display"
 
 # connect to Postgres
 pg_conn_good = False
+pg_conn_error = ""
 try:
     pg_conn = psycopg2.connect(settings['pg_connect_string'])
     pg_conn.autocommit = True
     pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)  # get query rows as a list of dictionaries
     pg_conn_good = True
-except psycopg2.Error:
-    pass
+except psycopg2.Error as ex:
+    pg_conn_error = ex.pgerror
 
 # URL format for getting boundary data
 GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/<z>/<t>/"
