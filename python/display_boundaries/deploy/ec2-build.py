@@ -25,27 +25,47 @@ VPC_ID = "vpc-79da031c"
 def main():
     full_start_time = datetime.now()
 
+    proxies = passwords.proxies
+
     # get uuid based passwords
     password_array = str(uuid.uuid4()).split("-")
     admin_password = password_array[1] + password_array[4].upper() + password_array[0] + password_array[3].upper()
     password_array = str(uuid.uuid4()).split("-")
     readonly_password = password_array[3] + password_array[2].upper() + password_array[4] + password_array[0].upper()
 
-    # create security groupo ()if it doesn't exist
-    ec2_client = boto3.client('ec2')
+    # get ec2 client (ignoring IAG's invalid SSL certificate)
+    ec2_client = boto3.client('ec2', verify=False, region_name=AVAILABILITY_ZONE,
+                              config=Config(proxies={"https": proxies["https"]}))
 
-    # response = ec2_client.describe_vpcs()
-    # vpc_id = response.get('Vpcs', [{}])[0].get('VpcId', '')
+    # # get VPC ID
+    # response_dict = ec2_client.describe_vpcs()
+    # vpc_id = response_dict.get('Vpcs', [{}])[0].get('VpcId', '')
     # print(vpc_id)
 
-    try:
-        response = ec2_client.create_security_group(GroupName='asdohuhcsouhdv',
-                                             Description='Opens port 5432 for Postgres database servers',
-                                             VpcId=VPC_ID)
-        security_group_id = response['GroupId']
-        logger.info('Security Group Created %s in vpc %s' % (security_group_id, VPC_ID))
+    # get subnet ID
+    subnet_id = None
+    response_dict = ec2_client.describe_network_interfaces()
+    for response in response_dict["NetworkInterfaces"]:
+        if response["VpcId"] == VPC_ID:
+            subnet_id = response["SubnetId"]
 
-        data = ec2_client.authorize_security_group_ingress(
+    # check if security group exists
+    security_group_id = None
+    response_dict = ec2_client.describe_security_groups()
+
+    for response in response_dict["SecurityGroups"]:
+        if response["GroupName"] == GROUP_NAME:
+            security_group_id = response["GroupId"]
+            # vpc_id = response["VpcId"]
+
+    # create security group (if it doesn't exist)
+    if security_group_id is None:
+        response_dict = ec2_client.create_security_group(GroupName=GROUP_NAME,
+                                                         Description='Opens port 5432 for Postgres database servers',
+                                                         VpcId=VPC_ID)
+        security_group_id = response_dict['GroupId']
+
+        response_dict = ec2_client.authorize_security_group_ingress(
             GroupId=security_group_id,
             IpPermissions=[
                 {'IpProtocol': 'tcp',
@@ -57,66 +77,56 @@ def main():
                  'ToPort': 22,
                  'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}
             ])
-        print('Ingress Successfully Set %s' % data)
-    except ClientError as e:
-        logger.warning(e)
+        logger.info("\tSecurity Group {0} ({1}) created in VPC {2}".format(GROUP_NAME, security_group_id, VPC_ID))
+        logger.info("\t\t{0}".format(response_dict))
+    else:
+        logger.info("\tSecurity Group {0} ({1}) already exists in VPC {2}".format(GROUP_NAME, security_group_id, VPC_ID))
 
+    # get ec2 service resources (ignoring IAG's invalid SSL certificate)
+    ec2 = boto3.resource('ec2', verify=False, region_name=AVAILABILITY_ZONE,
+                         config=Config(proxies={"https": proxies["https"]}))
 
-    # create ec2 instance
-    ec2 = boto3.resource('ec2', region_name=AVAILABILITY_ZONE)
-
+    # create EC2 instance
     response_dict = ec2.create_instances(
-        ImageId="ami-bb1901d8",  # Ubuntu 16.04 LTS - see https://cloud-images.ubuntu.com/locator/ec2/
+        ImageId=AMI_ID,  # Ubuntu 16.04 LTS - see https://cloud-images.ubuntu.com/locator/ec2/
         MinCount=1,
         MaxCount=1,
-        InstanceType="t2.micro",
-        Placement={
-            "AvailabilityZone": AVAILABILITY_ZONE + "a"
-        },
+        KeyName="loceng-key",
+        InstanceType=BUILD_ID,
+        SubnetId=subnet_id,
+        SecurityGroupIds=[security_group_id],
+        Placement={"AvailabilityZone": AVAILABILITY_ZONE + "c"},
         TagSpecifications=[
             {
                 'ResourceType': "instance",
                 'Tags': [
                     {
-                        "Key": "name",
-                        "Value": "test_database"
+                        "Key": "Name",
+                        "Value": "loceng test database"
                     },
                     {
-                        "Key": "owner",
-                        "Value": "minus34"
+                        "Key": "Owner",
+                        "Value": "s57405"
                     },
                     {
-                        "Key": "purpose",
+                        "Key": "Purpose",
                         "Value": "Choice of Repairer testing"
                     },
                 ]
             },
-        ]
+        ],
+        DryRun=False
     )
+    logger.info("EC2 instance created")
     logger.info("\t\t{0}".format(response_dict))
 
 
-    # # create lightsail client
-    # lightsail_client = boto3.client('lightsail')
-    #
-    # # blueprints = lightsail_client.get_blueprints()
-    # # for bp in blueprints['blueprints']:
-    # #     if bp['isActive']:
-    # #         print('{} : {}'.format(bp['blueprintId'], bp['description']))
-    #
-    # # bundles = lightsail_client.get_bundles(includeInactive=False)
-    # # for bundle in bundles['bundles']:
-    # #     for k, v in bundle.items():
-    # #         print('{} : {}'.format(k, v))
-    #
-    # response_dict = lightsail_client.create_instances(
-    #     instanceNames=[INSTANCE_NAME],
-    #     availabilityZone=AVAILABILITY_ZONE,
-    #     blueprintId=BLUEPRINT,
-    #     bundleId=BUILDID
-    #     # userData=initial_script
-    # )
-    # logger.info("\t\t{0}".format(response_dict))
+
+
+
+
+
+
 
     # wait until instance is running
     instance_dict = get_lightsail_instance(lightsail_client, INSTANCE_NAME)
