@@ -6,26 +6,22 @@ import paramiko
 import time
 import uuid
 
-from botocore.exceptions import ClientError
 from datetime import datetime
 
 logging.getLogger("paramiko").setLevel(logging.INFO)
 
-BLUEPRINT = "ubuntu_16_04_1"
-# BUILDID = "nano_1_2"
-BUILDID = "medium_1_2"
+AMI_ID = "ami-bb1901d8"
+BUILD_ID = "t2.micro"
 # KEY_PAIR_NAME = "Default"
 AVAILABILITY_ZONE = "ap-southeast-2"  # Sydney, AU
-# AVAILABILITY_ZONE = "ap-southeast-2a"  # Sydney, AU
-PEM_FILE = "/Users/hugh.saalmans/.aws/LightsailDefaultPrivateKey-ap-southeast-2.pem"
-INSTANCE_NAME = "census_loader_instance_v2"
+PEM_FILE = "/Users/hugh/.aws/loceng-key.pem"
+INSTANCE_NAME = "choice_of_repairer_test"
 VPC_ID = "vpc-79da031c"
+GROUP_NAME = "minus34-postgres"
 
 
 def main():
     full_start_time = datetime.now()
-
-    proxies = passwords.proxies
 
     # get uuid based passwords
     password_array = str(uuid.uuid4()).split("-")
@@ -34,8 +30,7 @@ def main():
     readonly_password = password_array[3] + password_array[2].upper() + password_array[4] + password_array[0].upper()
 
     # get ec2 client (ignoring IAG's invalid SSL certificate)
-    ec2_client = boto3.client('ec2', verify=False, region_name=AVAILABILITY_ZONE,
-                              config=Config(proxies={"https": proxies["https"]}))
+    ec2_client = boto3.client('ec2', region_name=AVAILABILITY_ZONE)
 
     # # get VPC ID
     # response_dict = ec2_client.describe_vpcs()
@@ -83,8 +78,7 @@ def main():
         logger.info("\tSecurity Group {0} ({1}) already exists in VPC {2}".format(GROUP_NAME, security_group_id, VPC_ID))
 
     # get ec2 service resources (ignoring IAG's invalid SSL certificate)
-    ec2 = boto3.resource('ec2', verify=False, region_name=AVAILABILITY_ZONE,
-                         config=Config(proxies={"https": proxies["https"]}))
+    ec2 = boto3.resource('ec2', region_name=AVAILABILITY_ZONE)
 
     # create EC2 instance
     response_dict = ec2.create_instances(
