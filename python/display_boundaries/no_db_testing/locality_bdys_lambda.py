@@ -42,7 +42,7 @@ GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/"
 def getbdys(ml, mb, mr, mt):
     log = list()
     full_start_time = datetime.now()
-    start_time = datetime.now()
+    # start_time = datetime.now()
 
     # get requested map bounds as floats
     left = float(ml)
@@ -61,8 +61,8 @@ def getbdys(ml, mb, mr, mt):
             left <= bounding_box['r'] <= right and bottom <= bounding_box['b'] <= top):
             bdy_ids.append(bounding_box['id'])
 
-    log.append("got boundary ids in : {}".format(datetime.now() - start_time))
-    start_time = datetime.now()
+    # log.append("got boundary ids in : {}".format(datetime.now() - start_time))
+    # start_time = datetime.now()
 
     # set source AWS connection
     aws_session = boto3.Session(profile_name=settings["aws_profile"])
@@ -89,7 +89,7 @@ def getbdys(ml, mb, mr, mt):
     # Assemble the GeoJSON
     output_dict["features"] = feature_array
 
-    log.append("json response constructed : {}".format(datetime.now() - start_time))
+    # log.append("json response constructed : {}".format(datetime.now() - start_time))
     print("{}\n\n{} records returned : {}".format("\n".join(log), len(bdy_ids), datetime.now() - full_start_time))
 
     return Response(json.dumps(output_dict), mimetype='application/json')
