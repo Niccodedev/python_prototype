@@ -105,28 +105,31 @@ def main():
 
         feature_dict["properties"] = properties_dict
 
-        json_str = json.dumps(feature_dict) + "\n"
-        gz_file_obj = create_gzip_file_object(json_str)
+        json_str = json.dumps(feature_dict)
+        json_bytes = json_str.encode('utf-8')
+        gzip_obj = gzip.compress(json_bytes)
+
+        # gz_file_obj = create_gzip_file_object(json_str)
 
         file_path = "{}/{}.gz".format(settings['s3_path'], feature_dict["id"])
 
         # Upload the file to S3
-        s3_client.put_object(Body=gz_file_obj, Bucket=settings["s3_bucket"], Key=file_path)
+        s3_client.put_object(Body=gzip_obj, Bucket=settings["s3_bucket"], Key=file_path)
 
         print("uploaded {}".format(file_path))
 
     print("Done! : {}".format(datetime.now() - full_start_time))
 
 
-def create_gzip_file_object(string_):
-    out = io.BytesIO()
-
-    with gzip.GzipFile(fileobj=out, mode='w') as fo:
-        fo.write(string_.encode('utf-8'))
-
-    out.seek(0)
-
-    return out
+# def create_gzip_file_object(string_):
+#     out = io.BytesIO()
+#
+#     with gzip.GzipFile(fileobj=out, mode='w') as fo:
+#         fo.write(string_.encode('utf-8'))
+#
+#     out.seek(0)
+#
+#     return out
 
 
 if __name__ == '__main__':

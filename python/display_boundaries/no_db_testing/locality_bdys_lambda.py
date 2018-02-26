@@ -9,6 +9,7 @@ import json
 
 import locality_bdys_display
 
+from botocore.config import Config
 from datetime import datetime
 
 from flask import Flask
@@ -21,35 +22,29 @@ app = Flask(__name__)
 CORS(app)
 Compress(app)
 
+settings = dict()
+
 # path to the GeoJSON files
-file_path = "/Users/hugh.saalmans/tmp/locality_bdys_display_json"
-# file_path = "/Users/hugh/tmp/locality_bdys_display_json"
+# settings['file_path'] = "/Users/hugh.saalmans/tmp/locality_bdys_display_json"
+# settings['file_path'] = "/Users/hugh/tmp/locality_bdys_display_json"
+
+settings['aws_profile'] = "default"
+settings['s3_bucket'] = "minus34.com"
+settings['s3_path'] = "opendata/psma-201802/admin_bdys/locality-bdys-display"  # DO NOT put '/' at the start !
 
 # URL format for getting boundary data
 GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/"
-# GET_DATA_URL = "/<ml>/<mb>/<mr>/<mt>/<z>/<t>/"
-
-# e.g. https://859uppjni0.execute-api.ap-southeast-2.amazonaws.com/dev/151.0730838775635/-33.894428556111/151.2268924713135/-33.805610879310436/14/locality_bdys_display/
 
 # http://127.0.0.1:5000/151.14/-33.85/151.15/-33.84/
 
 
 @app.route(GET_DATA_URL)
 def getbdys(ml, mb, mr, mt):
-# def bdys(ml, mb, mr, mt, z, t):
     log = list()
     full_start_time = datetime.now()
     start_time = datetime.now()
 
-    # # get bounding boxes acti
-    # f = open("locality-bdys-display.json", 'r')
-    # bounding_boxes = ast.literal_eval(f.read())
-    # f.close()
-
-    log.append("loaded bounding boxes in : {}".format(datetime.now() - start_time))
-    start_time = datetime.now()
-
-    # get map bounds as floats
+    # get requested map bounds as floats
     left = float(ml)
     bottom = float(mb)
     right = float(mr)
@@ -64,10 +59,17 @@ def getbdys(ml, mb, mr, mt):
             left <= bounding_box['l'] <= right and bottom <= bounding_box['t'] <= top or
             left <= bounding_box['r'] <= right and bottom <= bounding_box['t'] <= top or
             left <= bounding_box['r'] <= right and bottom <= bounding_box['b'] <= top):
-                bdy_ids.append(bounding_box['id'])
+            bdy_ids.append(bounding_box['id'])
 
     log.append("got boundary ids in : {}".format(datetime.now() - start_time))
     start_time = datetime.now()
+
+    # set source AWS connection
+    aws_session = boto3.Session(profile_name=settings["aws_profile"])
+    if 'proxy' in settings:
+        s3_client = aws_session.client('s3', config=Config(proxies={'https': settings['proxy']}), verify=False)
+    else:
+        s3_client = aws_session.client('s3')
 
     # get the GeoJSON records for each bdy
     output_dict = dict()
@@ -76,14 +78,19 @@ def getbdys(ml, mb, mr, mt):
     feature_array = list()
 
     for bdy_id in bdy_ids:
-        with gzip.GzipFile(file_path + "/" + bdy_id + ".gz", 'r') as fin:
-            json_bytes = fin.read()
+        file_path = "{}/{}.gz".format(settings['s3_path'], bdy_id)
 
-            json_str = json_bytes.decode('utf-8')
-            feature_array.append(json_str)
+        response = s3_client.get_object(Bucket=settings["s3_bucket"], Key=file_path)
+        gzip_obj = response['Body'].read()
+        json_bytes = gzip.decompress(gzip_obj)
 
-        # bdy_file = open(file_path + "/" + bdy_id + ".json", "r")
-        # feature_array.append(bdy_file.read())
+        json_str = json_bytes.decode('utf-8')
+        feature_array.append(json_str)
+
+        # with gzip.GzipFile(settings['file_path'] + "/" + bdy_id + ".gz", 'r') as fin:
+        #     json_bytes = fin.read()
+        #     json_str = json_bytes.decode('utf-8')
+        #     feature_array.append(json_str)
 
     # Assemble the GeoJSON
     output_dict["features"] = feature_array
