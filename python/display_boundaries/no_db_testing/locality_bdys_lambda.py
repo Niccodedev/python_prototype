@@ -65,11 +65,11 @@ def getbdys(ml, mb, mr, mt):
     # start_time = datetime.now()
 
     # set source AWS connection
-    aws_session = boto3.Session(profile_name=settings["aws_profile"])
-    if 'proxy' in settings:
-        s3_client = aws_session.client('s3', config=Config(proxies={'https': settings['proxy']}), verify=False)
-    else:
-        s3_client = aws_session.client('s3')
+    # aws_session = boto3.Session(profile_name=settings["aws_profile"])
+    # if 'proxy' in settings:
+    #     s3_client = aws_session.client('s3', config=Config(proxies={'https': settings['proxy']}), verify=False)
+    # else:
+    s3_client = boto3.client('s3')
 
     # get the GeoJSON records for each bdy
     output_dict = dict()
