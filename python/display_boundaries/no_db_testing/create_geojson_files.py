@@ -11,7 +11,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 import os
-import sys
+# import sys
 
 from botocore.config import Config
 from datetime import datetime
@@ -24,21 +24,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger('botocore').setLevel(logging.CRITICAL)
 logging.getLogger('boto3').setLevel(logging.CRITICAL)
 
-# add geo framework utilities
-sys.path.append(os.environ['GIT_HOME'])  # point of entry to Git and home of passwords.ini file
-
-from iagcl.geo_utilities.environment.interface import Interface_Suite
-passwords, logger, heartbeat = Interface_Suite(log_file=None)
-
 settings = dict()
 
 # path to the GeoJSON files
 # settings['file_path'] = "/Users/hugh.saalmans/tmp/locality_bdys_display_json"
 # settings['file_path'] = "/Users/hugh/tmp/locality_bdys_display_json"
 
-settings['aws_profile'] = "minus34"
+settings['aws_profile'] = "default"
 settings['s3_bucket'] = "minus34.com"
-settings['s3_path'] = "/opendata/psma-201802/admin_bdys/locality-bdys-display"
+settings['s3_path'] = "opendata/psma-201802/admin_bdys/locality-bdys-display"  # DO NOT put '/' at the start !
 
 # settings['schema_name'] = "admin_bdys_201802"
 # settings['tables_name'] = "locality_bdys_display"
@@ -71,6 +65,13 @@ pg_cur = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
 def main():
     full_start_time = datetime.now()
+
+    # set target AWS connection
+    aws_session = boto3.Session(profile_name=settings["aws_profile"])
+    if 'proxy' in settings:
+        s3_client = aws_session.client('s3', config=Config(proxies={'https': settings['proxy']}), verify=False)
+    else:
+        s3_client = aws_session.client('s3')
 
     try:
         pg_cur.execute(settings['sql'])
@@ -107,30 +108,12 @@ def main():
         json_str = json.dumps(feature_dict) + "\n"
         gz_file_obj = create_gzip_file_object(json_str)
 
-        # json_bytes = json_str.encode('utf-8')
-        #
-        # with gzip.GzipFile(settings['file_path'] + "/" + feature_dict["id"] + ".gz", 'w') as f:
-        #     f.write(json_bytes)
-
         file_path = "{}/{}.gz".format(settings['s3_path'], feature_dict["id"])
 
-        # set target AWS connection
-        aws_session = boto3.Session(profile_name=settings["aws_profile"])
-        if 'proxy' in settings:
-            s3_client = aws_session.client('s3', config=Config(proxies={'https': settings['proxy']}), verify=False)
-        else:
-            s3_client = aws_session.client('s3')
-
         # Upload the file to S3
-        s3_client.upload_fileobj(gz_file_obj, settings["s3_bucket"], file_path)
+        s3_client.put_object(Body=gz_file_obj, Bucket=settings["s3_bucket"], Key=file_path)
 
-        print("uploaded : {}".format(file_path))
-
-    #     bdy_file = gzip.GzipFile(settings['file_path'] + "/" + feature_dict["id"] + ".json", mode="wb")
-    #     bdy_file.write(str(feature_dict))
-    #     # bdy_file = open(settings['file_path'] + "/" + feature_dict["id"] + ".json", "w")
-    #     # bdy_file.write(str(feature_dict))
-    #     bdy_file.close()
+        print("uploaded {}".format(file_path))
 
     print("Done! : {}".format(datetime.now() - full_start_time))
 
@@ -140,6 +123,8 @@ def create_gzip_file_object(string_):
 
     with gzip.GzipFile(fileobj=out, mode='w') as fo:
         fo.write(string_.encode('utf-8'))
+
+    out.seek(0)
 
     return out
 
