@@ -5,7 +5,7 @@
 import ast
 import boto3
 import gzip
-import io
+# import io
 import json
 import logging
 import psycopg2
