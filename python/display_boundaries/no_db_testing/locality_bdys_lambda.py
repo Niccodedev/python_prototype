@@ -82,15 +82,9 @@ def getbdys(ml, mb, mr, mt):
 
         response = s3_client.get_object(Bucket=settings["s3_bucket"], Key=file_path)
         gzip_obj = response['Body'].read()
-        json_bytes = gzip.decompress(gzip_obj)
+        json_str = json.loads(gzip.decompress(gzip_obj).decode('utf-8'))
 
-        json_str = json_bytes.decode('utf-8')
         feature_array.append(json_str)
-
-        # with gzip.GzipFile(settings['file_path'] + "/" + bdy_id + ".gz", 'r') as fin:
-        #     json_bytes = fin.read()
-        #     json_str = json_bytes.decode('utf-8')
-        #     feature_array.append(json_str)
 
     # Assemble the GeoJSON
     output_dict["features"] = feature_array
