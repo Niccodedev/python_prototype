@@ -5,7 +5,7 @@
 import boto3
 import gzip
 import json
-import sys
+# import sys
 import multiprocessing
 
 import locality_bdys_display
@@ -22,6 +22,11 @@ from flask_cors import CORS
 # from queue import Queue
 #
 # q = Queue(400)
+
+# keep Boto3 quiet unless something really bad happens
+import logging
+logging.getLogger('botocore').setLevel(logging.CRITICAL)
+logging.getLogger('boto3').setLevel(logging.CRITICAL)
 
 # create Flask app
 app = Flask(__name__)
